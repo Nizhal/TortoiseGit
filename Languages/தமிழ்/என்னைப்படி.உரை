@@ -1,0 +1,5 @@
+https://gitlab.com/tortoisegit/tortoisegit/blob/master/Languages/README.txt
+After successfully creating your dlls, copy them into
+"C:\Program Files\TortoiseGit\Languages".
+Now you should be able to select your language from the combobox on the
+TortoiseGit main setting page.
