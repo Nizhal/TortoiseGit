@@ -1,12 +1,12 @@
-/* This script is a local pre-commit hook script.
- * It's used to check whether the copyright year of modified files has been
- * bumped up to the current year.
+/* இந்த கையெழுத்துப்படிவம் ஒரு உள்ளூர் முன்-உறுதிமொழி கொக்கி கையெழுத்துப்படிவம் ஆகும்.
+ * மாற்றியமைக்கப்பட்ட கோப்புகளின் பதிப்புரிமை ஆண்டு நடப்பு ஆண்டு வரை 
+ * அதிகரிக்கப்பட்டுள்ளதா என்பதைச் சரிபார்க்க இது பயன்படுகிறது.
  *
- * Only *.c, *.cpp, *.h, *.idl and *.pot files are checked
+ * *.c, *.cpp, *.h, *.idl மற்றும் *.pot கோப்புகள் மட்டுமே சரிபார்க்கப்படுகின்றன
  *
- * Set the local hook scripts like this (pre-commit hook):
- * WScript path/to/this/script/file.js
- * and set "Wait for the script to finish"
+ * இது போன்ற உள்ளூர் கொக்கி கையெழுத்துப்படிவங்களை அமைக்கவும் (முன்-உறுதிமொழி கொக்கி):
+ * WScript இந்த/கையெழுத்துப்படிவ/கோப்பிற்கான/பாதை.js
+ * மற்றும் "கையெழுத்துப்படிவம் முடிவடையும் வரை காத்திரு" என்பதை அமைக்கவும்
  */
 
 var ForReading = 1;
