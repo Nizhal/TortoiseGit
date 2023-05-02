@@ -278,9 +278,6 @@
     <ClCompile Include="..\tgit\merge-recursive.c">
       <Filter>git</Filter>
     </ClCompile>
-    <ClCompile Include="..\tgit\mergesort.c">
-      <Filter>git</Filter>
-    </ClCompile>
     <ClCompile Include="..\tgit\name-hash.c">
       <Filter>git</Filter>
     </ClCompile>
@@ -829,6 +826,18 @@
     </ClCompile>
     <ClCompile Include="..\tgit\prompt.c">
       <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tgit\compat\nonblock.c">
+      <Filter>compat\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tgit\bundle-uri.c">
+      <Filter>git</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tgit\trace2\tr2_ctr.c">
+      <Filter>git\trace2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tgit\trace2\tr2_tmr.c">
+      <Filter>git\trace2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1405,6 +1414,9 @@
     </ClInclude>
     <ClInclude Include="..\tgit\prompt.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tgit\compat\nonblock.h">
+      <Filter>compat\win32</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿// TortoiseGit - a Windows shell extension for easy version control
 
-// Copyright (C) 2008-2022 - TortoiseGit
+// Copyright (C) 2008-2023 - TortoiseGit
 // Copyright (C) 2005-2007 Marco Costalba
 
 // This program is free software; you can redistribute it and/or
@@ -544,7 +544,7 @@ void CGitLogListBase::DrawTagBranchMessage(NMLVCUSTOMDRAW* pLVCD, const CRect& r
 	int action = data->GetRebaseAction();
 	bool skip = !!(action & (LOGACTIONS_REBASE_DONE | LOGACTIONS_REBASE_SKIP));
 	std::vector<CHARRANGE> ranges;
-	auto filter = m_LogFilter;
+	auto filter{ m_LogFilter.load() };
 	if ((filter->GetSelectedFilters() & (LOGFILTER_SUBJECT | (m_bFullCommitMessageOnLogLine ? LOGFILTER_MESSAGES : 0))) && filter->IsFilterActive())
 		filter->GetMatchRanges(ranges, msg, 0);
 	if (hTheme)
@@ -1209,7 +1209,7 @@ void CGitLogListBase::OnNMCustomdrawLoglist(NMHDR *pNMHDR, LRESULT *pResult)
 		switch (pLVCD->iSubItem)
 		{
 		case LOGLIST_GRAPH:
-			if ((m_ShowFilter & FILTERSHOW_MERGEPOINTS) && !m_LogFilter->IsFilterActive())
+			if ((m_ShowFilter & FILTERSHOW_MERGEPOINTS) && !m_LogFilter.load()->IsFilterActive())
 			{
 				if (m_arShownList.size() > pLVCD->nmcd.dwItemSpec && !this->m_IsRebaseReplaceGraph)
 				{
@@ -1241,67 +1241,12 @@ void CGitLogListBase::OnNMCustomdrawLoglist(NMHDR *pNMHDR, LRESULT *pResult)
 			{
 				GitRevLoglist* data = m_arShownList.SafeGetAt(pLVCD->nmcd.dwItemSpec);
 
-				auto hashMapSharedPtr = m_HashMap;
+				auto hashMapSharedPtr{ m_HashMap.load() };
 				const auto& hashMap = *hashMapSharedPtr;
 				if ((hashMap.find(data->m_CommitHash) != hashMap.cend() || m_submoduleInfo.AnyMatches(data->m_CommitHash)) && !(data->GetRebaseAction() & LOGACTIONS_REBASE_DONE))
 				{
 					CRect rect;
 					GetSubItemRect(static_cast<int>(pLVCD->nmcd.dwItemSpec), pLVCD->iSubItem, LVIR_BOUNDS, rect);
-
-					// BEGIN: extended redraw, HACK for issue #1618 and #2014
-					// not in FillBackGround method, because this only affected the message subitem
-					if (0 != pLVCD->iStateId) // don't know why, but this helps against loosing the focus rect
-						return;
-
-					int index = static_cast<int>(pLVCD->nmcd.dwItemSpec);
-					int state = GetItemState(index, LVIS_SELECTED);
-					int txtState = LISS_NORMAL;
-					if (IsAppThemed() && GetHotItem() == static_cast<int>(index))
-					{
-						if (state & LVIS_SELECTED)
-							txtState = LISS_HOTSELECTED;
-						else
-							txtState = LISS_HOT;
-					}
-					else if (state & LVIS_SELECTED)
-					{
-						if (::GetFocus() == m_hWnd)
-							txtState = LISS_SELECTED;
-						else
-							txtState = LISS_SELECTEDNOTFOCUS;
-					}
-
-					CAutoThemeData hTheme;
-					if (IsAppThemed())
-					{
-						hTheme = OpenThemeData(m_hWnd, L"Explorer::ListView;ListView");
-
-						// make sure the column separator/border is not overpainted
-						int borderWidth = 0;
-						GetThemeMetric(hTheme, pLVCD->nmcd.hdc, LVP_LISTITEM, LISS_NORMAL, TMT_BORDERSIZE, &borderWidth);
-						InflateRect(&rect, -(2 * borderWidth), 0);
-					}
-
-					if (hTheme && IsThemeBackgroundPartiallyTransparent(hTheme, LVP_LISTDETAIL, txtState))
-						DrawThemeParentBackground(m_hWnd, pLVCD->nmcd.hdc, &rect);
-					else
-					{
-						HBRUSH brush = ::CreateSolidBrush(pLVCD->clrTextBk);
-						::FillRect(pLVCD->nmcd.hdc, rect, brush);
-						::DeleteObject(brush);
-					}
-					if (hTheme && txtState != LISS_NORMAL)
-					{
-						CRect rt;
-						// get rect of whole line
-						GetItemRect(index, rt, LVIR_BOUNDS);
-						CRect rect2 = rect;
-
-						// calculate background for rect of whole line, but limit redrawing to SubItem rect
-						DrawThemeBackground(hTheme, pLVCD->nmcd.hdc, LVP_LISTITEM, txtState, rt, rect2);
-					}
-					hTheme.CloseHandle();
-					// END: extended redraw
 
 					FillBackGround(pLVCD->nmcd.hdc, pLVCD->nmcd.dwItemSpec, rect);
 
@@ -1735,7 +1680,7 @@ bool CGitLogListBase::IsOnStash(int index)
 
 bool CGitLogListBase::IsStash(const GitRev * pSelLogEntry)
 {
-	auto hashMap = m_HashMap;
+	auto hashMap{ m_HashMap.load() };
 	const auto refList = hashMap.get()->find(pSelLogEntry->m_CommitHash);
 	if (refList == hashMap.get()->cend())
 		return false;
@@ -1744,7 +1689,7 @@ bool CGitLogListBase::IsStash(const GitRev * pSelLogEntry)
 
 bool CGitLogListBase::IsBisect(const GitRev * pSelLogEntry)
 {
-	auto hashMap = m_HashMap;
+	auto hashMap{ m_HashMap.load() };
 	const auto refList = hashMap->find(pSelLogEntry->m_CommitHash);
 	if (refList == hashMap->cend())
 		return false;
@@ -1816,7 +1761,7 @@ void CGitLogListBase::OnContextMenu(CWnd* pWnd, CPoint point)
 			MessageBox(g_Git.GetGitLastErr(L"Could not get HEAD hash."), L"TortoiseGit", MB_ICONERROR);
 			return;
 		}
-		auto hashMapSharedPtr = m_HashMap;
+		auto hashMapSharedPtr{ m_HashMap.load() };
 		const auto& hashMap = *hashMapSharedPtr;
 		bool isHeadCommit = (pSelLogEntry->m_CommitHash == headHash);
 		CString currentBranch = L"refs/heads/" + g_Git.GetCurrentBranch();
@@ -2075,7 +2020,7 @@ void CGitLogListBase::OnContextMenu(CWnd* pWnd, CPoint point)
 
 			if(!pSelLogEntry->m_CommitHash.IsEmpty())
 			{
-				if (m_ContextMenuMask & GetContextMenuBit(ID_LOG))
+				if (m_ContextMenuMask & GetContextMenuBit(ID_LOG) || ((!isStash && hashMap.find(pSelLogEntry->m_CommitHash) != hashMap.cend()) || showExtendedMenu))
 				{
 					popup.AppendMenuIcon(ID_LOG, IDS_LOG_POPUP_LOG, IDI_LOG);
 					if (m_ColumnRegKey == L"reflog")
@@ -2408,7 +2353,7 @@ void CGitLogListBase::OnContextMenu(CWnd* pWnd, CPoint point)
 			if (bAddSeparator)
 				popup.AppendMenu(MF_SEPARATOR, NULL);
 
-			if ((m_ContextMenuMask & GetContextMenuBit(ID_TOGGLE_ROLLUP)) && (m_ShowFilter & FILTERSHOW_MERGEPOINTS) && !m_LogFilter->IsFilterActive() && !pSelLogEntry->m_CommitHash.IsEmpty())
+			if ((m_ContextMenuMask & GetContextMenuBit(ID_TOGGLE_ROLLUP)) && (m_ShowFilter & FILTERSHOW_MERGEPOINTS) && !m_LogFilter.load()->IsFilterActive() && !pSelLogEntry->m_CommitHash.IsEmpty())
 			{
 				popup.AppendMenuIcon(ID_TOGGLE_ROLLUP, pSelLogEntry->m_RolledUp ? IDS_LOG_POPUP_EXPAND : IDS_LOG_POPUP_COLLAPSE);
 				popup.AppendMenu(MF_SEPARATOR, NULL);
@@ -2624,7 +2569,7 @@ void CGitLogListBase::DiffSelectedRevWithPrevious()
 	while (pos)
 		LastSelect = GetNextSelectedItem(pos);
 
-	auto hashMap = m_HashMap;
+	auto hashMap{ m_HashMap.load() };
 	ContextMenuAction(ID_COMPAREWITHPREVIOUS, FirstSelect, LastSelect, nullptr, *hashMap.get());
 }
 
@@ -2948,7 +2893,7 @@ UINT CGitLogListBase::LogThread()
 	}
 
 	// create a copy we can safely work on in this thread
-	auto shared_filter(m_LogFilter);
+	auto shared_filter{ m_LogFilter.load() };
 	const auto& filter = *shared_filter;
 
 	TRACE(L"\n===Begin===\n");
@@ -3019,14 +2964,14 @@ UINT CGitLogListBase::LogThread()
 
 		if (CGitMailmap::ShouldLoadMailmap())
 			GitRevLoglist::s_Mailmap = std::make_shared<CGitMailmap>();
-		else if (GitRevLoglist::s_Mailmap)
-			GitRevLoglist::s_Mailmap = nullptr;
-		auto mailmap = GitRevLoglist::s_Mailmap;
+		else if (GitRevLoglist::s_Mailmap.load())
+			GitRevLoglist::s_Mailmap.store(nullptr);
+		auto mailmap{ GitRevLoglist::s_Mailmap.load() };
 
-		auto hashMapSharedPtr = m_HashMap;
+		auto hashMapSharedPtr{ m_HashMap.load() };
 		const auto& hashMap = *hashMapSharedPtr;
 
-		auto rollUpStatesSharedPtr = m_RollUpStates;
+		auto rollUpStatesSharedPtr{ m_RollUpStates.load() };
 		const auto &rollUpStates = *rollUpStatesSharedPtr;
 		std::unordered_set<CGitHash> collapsedNodes, expandedNodes;
 
@@ -3233,7 +3178,7 @@ void CGitLogListBase::FetchRemoteList()
 void CGitLogListBase::FetchTrackingBranchList()
 {
 	m_TrackingMap.clear();
-	auto hashMap = m_HashMap;
+	auto hashMap{ m_HashMap.load() };
 	for (auto it = hashMap->cbegin(); it != hashMap->cend(); ++it)
 	{
 		for (const auto& ref : it->second)
@@ -3401,7 +3346,7 @@ void CGitLogListBase::ShowGraphColumn(bool bShow)
 
 CString CGitLogListBase::GetTagInfo(GitRev* pLogEntry) const
 {
-	auto hashMap = m_HashMap;
+	auto hashMap{ m_HashMap.load() };
 	auto refs = hashMap->find(pLogEntry->m_CommitHash);
 	if (refs == hashMap->end())
 		return L"";
@@ -3657,7 +3602,7 @@ LRESULT CGitLogListBase::OnFindDialogMessage(WPARAM /*wParam*/, LPARAM /*lParam*
 		//read data from dialog
 		CLogDlgFilter filter { m_pFindDialog->GetFindString(), m_pFindDialog->Regex(), LOGFILTER_ALL, m_pFindDialog->MatchCase() == TRUE };
 
-		auto hashMapSharedPtr = m_HashMap;
+		auto hashMapSharedPtr{ m_HashMap.load() };
 		auto& hashMap = *hashMapSharedPtr;
 
 		for (i = m_nSearchIndex + 1; ; ++i)
@@ -3779,7 +3724,7 @@ BOOL CGitLogListBase::OnToolTipText(UINT /*id*/, NMHDR* pNMHDR, LRESULT* pResult
 		{
 			CString branch;
 			CGit::REF_TYPE type = CGit::REF_TYPE::LOCAL_BRANCH;
-			auto hashMap = m_HashMap;
+			auto hashMap{ m_HashMap.load() };
 			if (IsMouseOnRefLabel(m_arShownList.SafeGetAt(nItem), lvhitTestInfo.pt, type, *hashMap.get(), &branch))
 			{
 				MAP_STRING_STRING descriptions;
@@ -3845,7 +3790,7 @@ CString CGitLogListBase::GetToolTipText(int nItem, int nSubItem)
 		GitRevLoglist* pLogEntry = m_arShownList.SafeGetAt(nItem);
 		if (pLogEntry == nullptr)
 			return CString();
-		auto hashMap = m_HashMap;
+		auto hashMap{ m_HashMap.load() };
 		if (hashMap->find(pLogEntry->m_CommitHash) == hashMap->cend() && !m_submoduleInfo.AnyMatches(pLogEntry->m_CommitHash))
 			return CString();
 		return pLogEntry->GetSubject();
@@ -4170,58 +4115,7 @@ bool CGitLogListBase::DrawListItemWithMatchesIfEnabled(std::shared_ptr<CLogDlgFi
 		CRect rect;
 		GetSubItemRect(static_cast<int>(pLVCD->nmcd.dwItemSpec), pLVCD->iSubItem, LVIR_BOUNDS, rect);
 
-		int index = static_cast<int>(pLVCD->nmcd.dwItemSpec);
-		int state = GetItemState(index, LVIS_SELECTED);
-		int txtState = LISS_NORMAL;
-		if (IsAppThemed() && GetHotItem() == static_cast<int>(index))
-		{
-			if (state & LVIS_SELECTED)
-				txtState = LISS_HOTSELECTED;
-			else
-				txtState = LISS_HOT;
-		}
-		else if (state & LVIS_SELECTED)
-		{
-			if (::GetFocus() == m_hWnd)
-				txtState = LISS_SELECTED;
-			else
-				txtState = LISS_SELECTEDNOTFOCUS;
-		}
-
-		CAutoThemeData hTheme;
-		if (IsAppThemed())
-		{
-			hTheme = OpenThemeData(m_hWnd, L"Explorer::ListView;ListView");
-
-			// make sure the column separator/border is not overpainted
-			int borderWidth = 0;
-			GetThemeMetric(hTheme, pLVCD->nmcd.hdc, LVP_LISTITEM, LISS_NORMAL, TMT_BORDERSIZE, &borderWidth);
-			InflateRect(&rect, -(2 * borderWidth), 0);
-		}
-
-		if (hTheme && IsThemeBackgroundPartiallyTransparent(hTheme, LVP_LISTDETAIL, txtState))
-			DrawThemeParentBackground(m_hWnd, pLVCD->nmcd.hdc, &rect);
-		else
-		{
-			HBRUSH brush = ::CreateSolidBrush(pLVCD->clrTextBk);
-			::FillRect(pLVCD->nmcd.hdc, rect, brush);
-			::DeleteObject(brush);
-		}
-		if (hTheme && txtState != LISS_NORMAL)
-		{
-			CRect rt;
-			// get rect of whole line
-			GetItemRect(index, rt, LVIR_BOUNDS);
-			CRect rect2 = rect;
-
-			// calculate background for rect of whole line, but limit redrawing to SubItem rect
-			DrawThemeBackground(hTheme, pLVCD->nmcd.hdc, LVP_LISTITEM, txtState, rt, rect2);
-		}
-		hTheme.CloseHandle();
-		// END: extended redraw
-
 		FillBackGround(pLVCD->nmcd.hdc, pLVCD->nmcd.dwItemSpec, rect);
-
 
 		*pResult = DrawListItemWithMatches(filter.get(), *this, pLVCD, m_Colors);
 		return true;

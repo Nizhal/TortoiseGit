@@ -1,17 +1,39 @@
-﻿= Release 2.14.0 =
+﻿= Release 2.15.0 =
 Released: unreleased
+
+== Features ==
+ * Fixed issue #4027: Autocompletion doesn't handle JS classes
+ * Updated libapr to 1.7.4
+ * Updated libapr-util to 1.6.3
+ * Updated pcre2 to 10.42
+ * Updated libgit to 2.40.1 based on Git for Windows sources
+ * Updated libgit2 to 1.6.4
+ * Fixed issue #3974: Windows 11 Context Menus only display in single user when has multiple users
+   Added a button to register the win11 context menu for the current user
+
+== Bug Fixes ==
+ * Fixed redraw bug in log list
+
+= Release 2.14.0.1 =
+Released: 2023-04-15
+
+== Bug Fixes ==
+ * Fixed issue #3997: TortoiseGit crashes with "libgit2 returned: failed to get security information: Incorrect function."
+
+= Release 2.14.0 =
+Released: 2023-02-05
 
 == Features ==
  * Fixed issue #3860: Highlight keywords, such as error, fatal and warning in output of git commands
  * Update Scintilla to 5.3.2 and Lexilla to 5.2.1
  * Allow to see diff to previous commit on commit dialog for merge commits
- * Update libgit to 2.37.2 based on Git for Windows sources
+ * Update libgit to 2.37.5 based on Git for Windows sources
  * Update libgit2 to 1.5.0
  * Update OGDF to version 2022.02
  * Fixed issue #3873: Submodule Add Dialog does not automatically grab the Git Clone link from the clipboard
  * Update zlib to 1.2.13
  * Update pcre2 to 10.40
- * Update hunspell to 1.7.1
+ * Update hunspell to 1.7.2
  * LogDlg: Prevent the graph from drawing an unfinished line for each ignored parent on first-parent only walk
  * Update shipped PuTTY binaries to 0.78
  * Update TortoiseGitPlink to PuTTY Plink 0.78
@@ -30,6 +52,8 @@ Released: unreleased
  * CommitDlg: Allow to see diff to previous commit also for merge commits
  * Add special environment variable "TGIT_INITIATED_CALL" to indicate that a git.exe call was issued from TortoiseGit
  * Add initial support for ARM64 (with separate MSI installer)
+ * Fixed issue #3996: Improve compatibility with Win32-OpenSSH (Git hanging on waiting passphrase from stdin)
+ * Fixed issue #3994: LogDlg: Allow to open new log dialog
 
 == Bug Fixes ==
  * Fixed issue #3865: Ampersand in branch name not shown in Windows context menu

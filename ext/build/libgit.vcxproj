@@ -57,6 +57,7 @@
   <ItemGroup>
     <ClCompile Include="..\tgit\apply.c" />
     <ClCompile Include="..\tgit\bloom.c" />
+    <ClCompile Include="..\tgit\bundle-uri.c" />
     <ClCompile Include="..\tgit\cbtree.c" />
     <ClCompile Include="..\tgit\chdir-notify.c" />
     <ClCompile Include="..\tgit\chunk-format.c" />
@@ -65,6 +66,7 @@
     <ClCompile Include="..\tgit\compat\fileno.c" />
     <ClCompile Include="..\tgit\compat\msvc.c" />
     <ClCompile Include="..\tgit\compat\basename.c" />
+    <ClCompile Include="..\tgit\compat\nonblock.c" />
     <ClCompile Include="..\tgit\compat\qsort_s.c" />
     <ClCompile Include="..\tgit\compat\terminal.c" />
     <ClCompile Include="..\tgit\compat\win32\dirent.c" />
@@ -176,7 +178,6 @@
     <ClCompile Include="..\tgit\merge-ort.c" />
     <ClCompile Include="..\tgit\merge-recursive.c" />
     <ClCompile Include="..\tgit\merge.c" />
-    <ClCompile Include="..\tgit\mergesort.c" />
     <ClCompile Include="..\tgit\midx.c" />
     <ClCompile Include="..\tgit\name-hash.c" />
     <ClCompile Include="..\tgit\negotiator\default.c" />
@@ -268,6 +269,7 @@
     <ClCompile Include="..\tgit\trace2.c" />
     <ClCompile Include="..\tgit\trace2\tr2_cfg.c" />
     <ClCompile Include="..\tgit\trace2\tr2_cmd_name.c" />
+    <ClCompile Include="..\tgit\trace2\tr2_ctr.c" />
     <ClCompile Include="..\tgit\trace2\tr2_dst.c" />
     <ClCompile Include="..\tgit\trace2\tr2_sid.c" />
     <ClCompile Include="..\tgit\trace2\tr2_sysenv.c" />
@@ -276,6 +278,7 @@
     <ClCompile Include="..\tgit\trace2\tr2_tgt_normal.c" />
     <ClCompile Include="..\tgit\trace2\tr2_tgt_perf.c" />
     <ClCompile Include="..\tgit\trace2\tr2_tls.c" />
+    <ClCompile Include="..\tgit\trace2\tr2_tmr.c" />
     <ClCompile Include="..\tgit\trailer.c" />
     <ClCompile Include="..\tgit\transport-helper.c" />
     <ClCompile Include="..\tgit\transport.c" />
@@ -337,6 +340,7 @@
     <ClInclude Include="..\tgit\color.h" />
     <ClInclude Include="..\tgit\column.h" />
     <ClInclude Include="..\tgit\commit.h" />
+    <ClInclude Include="..\tgit\compat\nonblock.h" />
     <ClInclude Include="..\tgit\compat\terminal.h" />
     <ClInclude Include="..\tgit\compat\win32\alloca.h" />
     <ClInclude Include="..\tgit\compat\win32\dirent.h" />
